@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  postgres05:
+    image: postgres:13
+    container_name: postgres05
+    ports:
+      - "5035:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: asset_management
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    container_name: backend-assets
+    ports:
+      - "3060:3060"
+    depends_on:
+      - postgres05
+    environment:
+      PGHOST: postgres05
+      PGUSER: postgres
+      PGPASSWORD: admin123
+      PGDATABASE: asset_management
+      PGPORT: 5432
+    restart: unless-stopped
+
+  employee-assets:
+    build:
+      context: ./Employee-Assets
+    container_name: employee-assets
+    ports:
+      - "8102:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  hr-assets:
+    build:
+      context: ./HR-Assets
+    container_name: hr-assets
+    ports:
+      - "8103:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
